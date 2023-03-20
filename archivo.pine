@@ -1,0 +1,29 @@
+//@version=4
+strategy("Indicador de Compra/Venta mejorado", overlay=true)
+
+// Definir las condiciones de compra y venta
+ema_fast = ema(close, 6)
+ema_slow = ema(close, 24)
+
+// Agregar filtro de sobrecompra/sobreventa con RSI
+rsi_value = rsi(close, 14)
+
+comprar = crossover(ema_fast, ema_slow) and rsi_value < 70
+vender = crossunder(ema_fast, ema_slow) and rsi_value > 30
+
+// Plotear las señales de compra y venta
+plotshape(comprar, title="Compra", style=shape.triangleup, location=location.belowbar, color=color.green, size=size.small)
+plotshape(vender, title="Venta", style=shape.triangledown, location=location.abovebar, color=color.red, size=size.small)
+
+// Implementar sistema de gestión de riesgos
+stop_loss = ema_fast * 0.98 // stop loss a 2% del precio de compra
+take_profit = ema_fast * 1.02 // take profit a 2% del precio de compra
+
+plot(stop_loss, title="Stop Loss", color=color.red, linewidth=1)
+plot(take_profit, title="Take Profit", color=color.green, linewidth=1)
+
+// Realizar backtesting
+strategy.entry("Compra", strategy.long, when=comprar)
+strategy.exit("SL/TP", "Compra", stop=stop_loss, limit=take_profit)
+strategy.entry("Venta", strategy.short, when=vender)
+strategy.exit("SL/TP", "Venta", stop=stop_loss, limit=take_profit)
